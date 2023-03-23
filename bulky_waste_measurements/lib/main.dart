@@ -1,3 +1,5 @@
+import 'package:bulky_waste_measurements/pages/camera_view.dart';
+import 'package:bulky_waste_measurements/pages/ruler_view.dart';
 import 'package:bulky_waste_measurements/utils/dead_reckoning.dart';
 import 'package:flutter/material.dart';
 
@@ -25,7 +27,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const RulerPage(),
     );
   }
 }
