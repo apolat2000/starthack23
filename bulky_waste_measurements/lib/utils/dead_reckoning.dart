@@ -1,83 +1,73 @@
-import 'dart:math';
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 class DeadReckoning {
-  double x = 0;
-  double y = 0;
-  double z = 0;
-
-  double y_mistake = 0;
-
   int lastTimestamp = 0;
+  int currentTimestamp = 0;
 
-  double distance = 0;
+  ValueNotifier<double> distance = ValueNotifier(0.0);
+  ValueNotifier<double> acceleration = ValueNotifier(0.0);
+  ValueNotifier<double> speed = ValueNotifier(0.0);
 
-  static const double threshold = 0.00;
+  static const double threshold = 0.2;
+  static const int timerInterval = 50;
+
+  Timer? timer;
 
   DeadReckoning() {}
 
-  // Calibration
+  void calculateSpeed(double acceleration) {
+    double diffTime = timerInterval / 1000;
 
-  int calibrationCount = 0;
-  int maxCalibrationCount = 10000;
-  double calibrationSum = 0;
-
-  void calibrate() {
-    calibrationCount = 0;
-    calibrationSum = 0;
+    // Calculate speed
+    speed.value += acceleration * diffTime;
   }
 
-  void calculateCalibration(double y) {
-    if (calibrationCount < maxCalibrationCount) {
-      calibrationCount++;
-      calibrationSum += y;
-    } else {
-      y_mistake = calibrationSum / maxCalibrationCount;
-    }
+  void calculateDistance(double speed) {
+    double diffTime = timerInterval / 1000;
+    // Calculate distance
+    distance.value += speed * diffTime;
   }
 
   void accelerometerListener(UserAccelerometerEvent event) {
-    calculateCalibration(event.y);
-
-    if (event.y > threshold) {
-      double y_unrounded = event.y - y_mistake;
-
-      // Round to 2 decimal places
-      y = (y_unrounded * 100).round() / 100;
-    } else {
-      y = 0;
+    acceleration.value = event.y;
+    // Threshold protection
+    if (acceleration.value.abs() < threshold) {
+      acceleration.value = 0;
+      return;
     }
+  }
 
-    _updateDistance();
+  void calculate(Timer timer) {
+    calculateSpeed(acceleration.value);
 
-    //  Round to 2 decimal places and print everything
-    print(
-        "y: ${y}, event.y: ${y.toStringAsFixed(2)} distance: ${distance.toStringAsFixed(2)}");
+    // Threshold protection
+    /*if (speed.value < 0) {
+      speed.value = 0;
+    }*/
+
+    calculateDistance(speed.value);
+
+    if (distance.value < 0) {
+      distance.value = 0;
+    }
   }
 
   void start() {
     userAccelerometerEvents.listen(accelerometerListener);
+
+    // Invoke the function calculate() every 10ms
+    timer =
+        Timer.periodic(const Duration(milliseconds: timerInterval), calculate);
   }
 
   void resetMeasurement() {
-    distance = 0;
-  }
-
-  // Measure only by y-axis
-  void _updateDistance() {
-    if (lastTimestamp == 0) {
-      lastTimestamp = DateTime.now().microsecondsSinceEpoch;
-      return;
-    }
-
-    int currentTimestamp = DateTime.now().microsecondsSinceEpoch;
-
-    //  Calculate time difference in seconds
-    double timeDiff = (currentTimestamp - lastTimestamp) / 1000000;
-
-    distance += y * timeDiff;
-
-    // Set last timestamp to current timestamp
-    lastTimestamp = currentTimestamp;
+    distance.value = 0;
+    speed.value = 0;
+    acceleration.value = 0;
+    lastTimestamp = 0;
+    currentTimestamp = 0;
   }
 }

@@ -1,7 +1,17 @@
+import 'package:bulky_waste_measurements/pages/camera_view.dart';
+import 'package:bulky_waste_measurements/pages/ruler_view.dart';
 import 'package:bulky_waste_measurements/utils/dead_reckoning.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
+  // Set the orientation to portrait
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .then((_) {
+    runApp(const MyApp());
+  });
+
   runApp(const MyApp());
 }
 
@@ -25,7 +35,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const RulerPage(),
     );
   }
 }
@@ -84,9 +94,6 @@ class _MyHomePageState extends State<MyHomePage> {
             const Text(
               'You have pushed the button this many times:',
             ),
-            // Blue button
-            ElevatedButton(
-                onPressed: deadReckoning.calibrate, child: Text("Calibrate")),
             // Blue button
             ElevatedButton(
                 onPressed: deadReckoning.resetMeasurement,
