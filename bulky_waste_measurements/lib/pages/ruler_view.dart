@@ -19,6 +19,7 @@ class RulerPageState extends State<RulerPage> {
   @override
   void initState() {
     scrollController = ScrollController(initialScrollOffset: 0);
+    NeverScrollableScrollPhysics();
     super.initState();
   }
 
@@ -34,6 +35,11 @@ class RulerPageState extends State<RulerPage> {
       Align(
           alignment: Alignment.centerLeft,
           child: RulerWidget(
+            physics: NeverScrollableScrollPhysics(),
+            initial_offset:
+                (half_size / MediaQuery.of(context).devicePixelRatio) *
+                        (1 / 4) -
+                    MediaQuery.of(context).padding.top,
             scaleBackgroundColor: Colors.grey.shade100,
             height: MediaQuery.of(context).size.width * .2,
             indicatorWidget: Column(
@@ -53,11 +59,17 @@ class RulerPageState extends State<RulerPage> {
           )),
       Positioned(
           left: 0,
-          bottom: half_size / MediaQuery.of(context).devicePixelRatio,
+          top: (half_size / MediaQuery.of(context).devicePixelRatio) * (1 / 4),
           child: Container(
               color: Colors.red,
               width: MediaQuery.of(context).size.width * .25,
-              height: 5))
+              height: 5)),
+      Positioned(
+          left: MediaQuery.of(context).size.width * .28,
+          top: (half_size / MediaQuery.of(context).devicePixelRatio) * (1 / 4) -
+              12.5,
+          child: Text('1,82m',
+              style: TextStyle(color: Colors.black87, fontSize: 25, height: 1)))
     ])));
   }
 
@@ -117,6 +129,10 @@ class RulerWidget extends StatefulWidget {
 
   final ScrollController? scrollController;
 
+  ScrollPhysics? physics;
+
+  double? initial_offset;
+
   RulerWidget(
       {Key? key,
       required this.height,
@@ -130,6 +146,8 @@ class RulerWidget extends StatefulWidget {
       this.lowerMidIndicatorLimit = 0,
       this.upperMidIndicatorLimit = 0,
       this.upperIndicatorLimit = 0,
+      this.physics,
+      this.initial_offset,
       this.inRangeBarColor = Colors.black,
       this.behindRangeBarColor = Colors.black,
       this.outRangeBarColor = Colors.black,
@@ -158,8 +176,17 @@ class _RulerWidgetState extends State<RulerWidget> {
       width: widget.axis == Axis.vertical ? widget.height : null,
       child: ListView.builder(
           itemCount: widget.upper_limit - widget.lower_limit,
+          physics: widget.physics,
           itemBuilder: (context, index) {
-            var i = index; //+ widget.lower_limit;
+            var i = index;
+            if (widget.initial_offset != null) {
+              i -= 1;
+              if (index == 0) {
+                return Container(height: widget.initial_offset);
+              }
+            }
+
+            //+ widget.lower_limit;
             return RotatedBox(
                 quarterTurns: widget.axis == Axis.horizontal ? 4 : 3,
                 child: RulerBarWidget(
@@ -226,7 +253,6 @@ class RulerBarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (_children.isEmpty) _getSmallBars();
-    num += 9;
 
     return Container(
         width: 38, //38 logical pixel == one centimeter
