@@ -84,9 +84,33 @@ class _MyHomePageState extends State<MyHomePage> {
             const Text(
               'You have pushed the button this many times:',
             ),
-            // Blue button
-            ElevatedButton(
-                onPressed: deadReckoning.calibrate, child: Text("Calibrate")),
+            const Text("Distance"),
+            ValueListenableBuilder(
+                valueListenable: deadReckoning.distance,
+                builder: (context, value, child) {
+                  return Text(
+                    '${value.toStringAsFixed(2)}',
+                    style: Theme.of(context).textTheme.headline4,
+                  );
+                }),
+            const Text("y-Value"),
+            ValueListenableBuilder(
+                valueListenable: deadReckoning.acceleration,
+                builder: (context, value, child) {
+                  return Text(
+                    '${value.toStringAsFixed(2)}',
+                    style: Theme.of(context).textTheme.headline4,
+                  );
+                }),
+            const Text("Speed"),
+            ValueListenableBuilder(
+                valueListenable: deadReckoning.speed,
+                builder: (context, value, child) {
+                  return Text(
+                    '${value.toStringAsFixed(2)}',
+                    style: Theme.of(context).textTheme.headline4,
+                  );
+                }),
             // Blue button
             ElevatedButton(
                 onPressed: deadReckoning.resetMeasurement,
